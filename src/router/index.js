@@ -6,6 +6,34 @@ import NotFound from '@views/not-found'
 Vue.use(Router)
 
 export const constantRouters = [
+  { path: '/', name: 'index', redirect: '/frontend/user' },
+  {
+    path: '/frontend/user',
+    name: 'front_user',
+    component: Layout,
+    redirect: '/frontend/user/index',
+    children: [
+      {
+        path: 'index',
+        name: 'frontend_user_index',
+        component: () => import('@views/frontend/user'),
+        meta: {title: '用户'}
+      }]
+  },
+  {
+    path: '/frontend/game',
+    name: 'frontend_game',
+    component: Layout,
+    redirect: '/frontend/game/schedule',
+    children: [
+      {
+        path: 'schedule',
+        name: 'frontend_game_schedule',
+        component: () => import('@views/frontend/game/schedule'),
+        meta: { title: '赛程' }
+      }
+    ]
+  },
   {
     path: '/backend/user',
     name: 'backend_user',
@@ -69,6 +97,12 @@ export const constantRouters = [
         name: 'backend_game_schedule',
         component: () => import('@views/backend/game/schedule'),
         meta: { title: '赛程' }
+      },
+      {
+        path: 'add',
+        name: 'backend_game_add',
+        component: () => import('@views/backend/game/add'),
+        meta: { title: '添加比赛' }
       }
     ]
   },

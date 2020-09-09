@@ -7,3 +7,7 @@ export function parseDate(date = undefined) {
 export function parseTime(time = undefined) {
   return moment(time || undefined).format('YYYY-MM-DD HH:mm:ss')
 }
+
+export function parseMinuteTime(time = undefined) {
+  return moment(time || undefined).format('HH:mm')
+}

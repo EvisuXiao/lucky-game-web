@@ -24,29 +24,46 @@
     },
     data() {
       return {
-        title: this.$route.meta.title,
-        headerHeight: '0',
-        bottomHeight: '0'
+        isMounted: false
       }
     },
     computed: {
+      title() {
+        return this.$route.meta.title
+      },
       tabs() {
+        const frontend = [
+          { title: '用户', link: '/frontend/user' },
+          { title: '赛程', link: '/frontend/game' }
+        ]
         const backend = [
-          { title: '用户', link: '/backend/user' },
-          { title: '球队', link: '/backend/team' },
           { title: '赛程', link: '/backend/game' },
+          { title: '球队', link: '/backend/team' },
+          { title: '用户', link: '/backend/user' },
           { title: '设置', link: '/backend/setting' }
         ]
-        return backend
+        return this.$store.getters.isFront ? frontend : backend
+      },
+      headerHeight() {
+        if (this.isMounted) {
+          return this.$refs.header.$el.offsetHeight + 'px'
+        }
+        return 0
+      },
+      bottomHeight() {
+        if (this.isMounted) {
+          return this.$refs.footer.$el.offsetHeight + 'px'
+        }
+        return 0
       }
     },
     mounted() {
-      this.headerHeight = this.$refs.header.$el.offsetHeight + 'px'
-      this.bottomHeight = this.$refs.footer.$el.offsetHeight + 'px'
+      this.isMounted = true
     },
     methods: {
       switchMode() {
         this.$store.commit('switchMode')
+        this.$router.push({ path: this.tabs[0].link })
         this.showToast('切换为' + (this.$store.getters.isFront ? '前台' : '后台'))
       },
       selected(link) {

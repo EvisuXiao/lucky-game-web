@@ -55,8 +55,20 @@ export function addSchedule(data) {
   return request(Config.ScheduleInfo, data, 'POST', 'message')
 }
 
+export function deleteSchedule(id) {
+  return request(Config.ScheduleInfo, { id: id }, 'DELETE', 'message')
+}
+
 export function generateSchedule(date) {
   return request(Config.ScheduleRandom, { date: date }, 'POST', 'message')
+}
+
+export function getGames(nickname, date) {
+  return request(Config.GameList, { nickname: nickname, date: date })
+}
+
+export function betGames(nickname, games) {
+  return request(Config.GameList, { nickname: nickname, games: games }, 'POST')
 }
 
 export function getSettings() {
