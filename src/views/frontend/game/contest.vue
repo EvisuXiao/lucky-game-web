@@ -3,48 +3,52 @@
     <group>
       <calendar v-model="date" title="比赛日期" @on-change="getSchedules"></calendar>
     </group>
-    <group>
-      <card v-for="(v, k) in schedules" :key="k">
-        <flexbox slot="content">
-          <flexbox-item class="en-text" :span="2">
-            <radio v-model="v.my_bet" :options="betOption" :disabled="!canBet(v)"></radio>
-          </flexbox-item>
-          <flexbox-item :style="{ color: resultColor(v.game_result, true) }" :span="4">
-            <div class="team-box team-text">
-              <span>{{ _.get(teams, v.home_team_id + '.name') }}</span>
-              <span class="result-box">{{ '(主)' }}</span>
-            </div>
-            <div class="team-box en-text">{{ _.get(teams, v.home_team_id + '.en_name') }}</div>
-            <template v-if="v.game_result > 0">
-              <div class="team-box score-text">
-                <span class="score-box">{{ v.home_team_score }}</span>
-                <span class="result-box">{{ `(${gameResult(v.game_result, true)})` }}</span>
+    <template v-if="!_.isEmpty(schedules)">
+      <group>
+        <card v-for="(v, k) in schedules" :key="k">
+          <flexbox slot="content">
+            <flexbox-item class="en-text" :span="2">
+              <radio v-model="v.my_bet" :options="betOption" :disabled="!canBet(v)"></radio>
+            </flexbox-item>
+            <flexbox-item :style="{ color: resultColor(v.game_result, true) }" :span="4">
+              <div class="team-box team-text">
+                <span>{{ _.get(teams, v.home_team_id + '.name') }}</span>
+                <span class="result-box">{{ '(主)' }}</span>
               </div>
-            </template>
-          </flexbox-item>
-          <flexbox-item :span="2">
-            <div class="team-box">VS</div>
-            <div class="team-box time-text">{{ parseMinuteTime(v.game_time) }}</div>
-          </flexbox-item>
-          <flexbox-item :style="{ color: resultColor(v.game_result, false) }" :span="4">
-            <div class="team-box team-text">
-              <span>{{ _.get(teams, v.away_team_id + '.name') }}</span>
-              <span class="result-box">{{ '(客)' }}</span>
-            </div>
-            <div class="team-box en-text">{{ _.get(teams, v.away_team_id + '.en_name') }}</div>
-            <template v-if="v.game_result > 0">
-              <div class="team-box score-text">
-                <span class="score-box">{{ v.home_team_score }}</span>
-                <span class="result-box">{{ `(${gameResult(v.game_result, false)})` }}</span>
+              <div class="team-box en-text">{{ _.get(teams, v.home_team_id + '.en_name') }}</div>
+              <template v-if="v.game_result > 0">
+                <div class="team-box score-text">
+                  <span class="score-box">{{ v.home_team_score }}</span>
+                  <span class="result-box">{{ `(${gameResult(v.game_result, true)})` }}</span>
+                </div>
+              </template>
+            </flexbox-item>
+            <flexbox-item :span="2">
+              <div class="team-box">VS</div>
+              <div class="team-box time-text">{{ parseMinuteTime(v.game_time) }}</div>
+            </flexbox-item>
+            <flexbox-item :style="{ color: resultColor(v.game_result, false) }" :span="4">
+              <div class="team-box team-text">
+                <span>{{ _.get(teams, v.away_team_id + '.name') }}</span>
+                <span class="result-box">{{ '(客)' }}</span>
               </div>
-            </template>
-          </flexbox-item>
-        </flexbox>
-      </card>
-    </group>
-    <group>
-      <x-button type="primary" :disabled="_.isEmpty(myBet)" @click.native="betGame">提交</x-button>
-    </group>
+              <div class="team-box en-text">{{ _.get(teams, v.away_team_id + '.en_name') }}</div>
+              <template v-if="v.game_result > 0">
+                <div class="team-box score-text">
+                  <span class="score-box">{{ v.home_team_score }}</span>
+                  <span class="result-box">{{ `(${gameResult(v.game_result, false)})` }}</span>
+                </div>
+              </template>
+            </flexbox-item>
+          </flexbox>
+        </card>
+      </group>
+      <group>
+        <x-button type="primary" :disabled="_.isEmpty(myBet)" @click.native="betGame">提交</x-button>
+        <x-button type="primary" :disabled="_.isEmpty(schedules)" @click.native="randomBetGame">随机下注</x-button>
+      </group>
+    </template>
+    <divider v-else>暂无数据</divider>
   </div>
 </template>
 
@@ -75,8 +79,9 @@
       myBet() {
         const bet = {}
         this.schedules.forEach(v => {
-          if (this.canBet(v) && v.my_bet > 0) {
-            bet[v.id] = v.my_bet
+          const myBet = parseInt(v.my_bet) || 0
+          if (this.canBet(v) && myBet > 0) {
+            bet[v.id] = myBet
           }
         })
         return bet
@@ -109,6 +114,19 @@
       },
       betGame() {
         betGames(this.$store.getters.username, this.myBet).then(msg => {
+          this.showToast(msg)
+          this.getSchedules()
+        })
+      },
+      randomBetGame() {
+        const bet = {}
+        this.schedules.forEach(v => {
+          if (this.canBet(v)) {
+            const myBet = parseInt(v.my_bet)
+            bet[v.id] = myBet || this._.random(1, 3)
+          }
+        })
+        betGames(this.$store.getters.username, bet).then(msg => {
           this.showToast(msg)
           this.getSchedules()
         })

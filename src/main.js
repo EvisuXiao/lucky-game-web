@@ -4,12 +4,13 @@ import Vue from 'vue'
 import FastClick from 'fastclick'
 import App from '@/App'
 import router from '@/router'
-import { Cell, Flexbox, FlexboxItem, Group, XButton, XInput, AlertPlugin, ConfirmPlugin, LoadingPlugin, ToastPlugin } from 'vux'
+import { Cell, Divider, Flexbox, FlexboxItem, Group, XButton, XInput, AlertPlugin, ConfirmPlugin, LoadingPlugin, ToastPlugin } from 'vux'
 import store from '@/store'
 import _ from 'lodash'
 import '@/styles/index.css' // global css
 
 Vue.component('cell', Cell)
+Vue.component('divider', Divider)
 Vue.component('flexbox', Flexbox)
 Vue.component('flexbox-item', FlexboxItem)
 Vue.component('group', Group)

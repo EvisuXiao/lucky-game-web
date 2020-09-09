@@ -1,8 +1,10 @@
 import * as Config from './config'
 import http from '@utils/request'
+import store from '@/store'
 import _ from 'lodash'
 
 function request(url, data = {}, method = 'GET', field = 'data') {
+  store.commit('setLoading', true)
   const config = { url: '/api' + url, method: method }
   _.set(config, method.toUpperCase() === 'GET' ? 'params' : 'data', data)
   return http(config).then(response => {
@@ -12,6 +14,8 @@ function request(url, data = {}, method = 'GET', field = 'data') {
     return Promise.resolve(response)
   }).catch(err => {
     return Promise.reject(err)
+  }).finally(() => {
+    store.commit('setLoading', false)
   })
 }
 
@@ -55,6 +59,10 @@ export function addSchedule(data) {
   return request(Config.ScheduleInfo, data, 'POST', 'message')
 }
 
+export function updateSchedule(data) {
+  return request(Config.ScheduleInfo, data, 'PUT', 'message')
+}
+
 export function deleteSchedule(id) {
   return request(Config.ScheduleInfo, { id: id }, 'DELETE', 'message')
 }
@@ -63,12 +71,24 @@ export function generateSchedule(date) {
   return request(Config.ScheduleRandom, { date: date }, 'POST', 'message')
 }
 
+export function getScheduleRecord(scheduleId) {
+  return request(Config.ScheduleRecord, { schedule_id: scheduleId })
+}
+
+export function chooseLuckyUser(scheduleId) {
+  return request(Config.GameLucky, { schedule_id: scheduleId }, 'PUT', 'message')
+}
+
 export function getGames(nickname, date) {
   return request(Config.GameList, { nickname: nickname, date: date })
 }
 
+export function getBets(nickname) {
+  return request(Config.GameBet, { nickname: nickname })
+}
+
 export function betGames(nickname, games) {
-  return request(Config.GameList, { nickname: nickname, games: games }, 'POST')
+  return request(Config.GameBet, { nickname: nickname, games: games }, 'POST', 'message')
 }
 
 export function getSettings() {

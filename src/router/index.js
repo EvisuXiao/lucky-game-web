@@ -24,13 +24,27 @@ export const constantRouters = [
     path: '/frontend/game',
     name: 'frontend_game',
     component: Layout,
-    redirect: '/frontend/game/schedule',
+    redirect: '/frontend/game/contest',
     children: [
       {
-        path: 'schedule',
-        name: 'frontend_game_schedule',
-        component: () => import('@views/frontend/game/schedule'),
-        meta: { title: '赛程' }
+        path: 'contest',
+        name: 'frontend_game_contest',
+        component: () => import('@views/frontend/game/contest'),
+        meta: { title: '竞猜' }
+      }
+    ]
+  },
+  {
+    path: '/frontend/record',
+    name: 'frontend_record',
+    component: Layout,
+    redirect: '/frontend/record/index',
+    children: [
+      {
+        path: 'index',
+        name: 'frontend_record_index',
+        component: () => import('@views/frontend/game/record'),
+        meta: { title: '记录' }
       }
     ]
   },
@@ -103,6 +117,12 @@ export const constantRouters = [
         name: 'backend_game_add',
         component: () => import('@views/backend/game/add'),
         meta: { title: '添加比赛' }
+      },
+      {
+        path: 'record',
+        name: 'backend_game_record',
+        component: () => import('@views/backend/game/record'),
+        meta: { title: '竞猜名单' }
       }
     ]
   },

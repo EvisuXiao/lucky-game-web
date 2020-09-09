@@ -3,59 +3,75 @@
     <group>
       <calendar v-model="date" title="比赛日期" @on-change="getSchedules"></calendar>
     </group>
-    <group>
+    <group v-if="!_.isEmpty(schedules)">
       <swipeout v-for="(v, k) in schedules" :key="k">
         <swipeout-item>
           <div slot="right-menu">
             <swipeout-button @click.native="deleteSchedule(v.id)" type="warn">删除</swipeout-button>
           </div>
-          <card slot="content">
-            <flexbox slot="content">
-              <flexbox-item :style="{ color: resultColor(v.game_result, true) }" :span="5">
-                <div class="team-box team-text">
-                  <span>{{ _.get(teams, v.home_team_id + '.name') }}</span>
-                  <span class="result-box">{{ '(主)' }}</span>
-                </div>
-                <div class="team-box en-text">{{ _.get(teams, v.home_team_id + '.en_name') }}</div>
-                <template v-if="v.game_result > 0">
-                  <div class="team-box score-text">
-                    <span class="score-box">{{ v.home_team_score }}</span>
-                    <span class="result-box">{{ `(${gameResult(v.game_result, true)})` }}</span>
+          <div slot="content" @click="editSchedule(v)">
+            <card :footer="{ title: v.game_result ? '竞猜名单' : '', link: v.game_result ? '/backend/game/record?schedule_id=' + v.id : '' }">
+              <flexbox slot="content">
+                <flexbox-item :style="{ color: resultColor(v.game_result, true) }" :span="5">
+                  <div class="team-box team-text">
+                    <span>{{ _.get(teams, v.home_team_id + '.name') }}</span>
+                    <span class="result-box">{{ '(主)' }}</span>
                   </div>
-                </template>
-              </flexbox-item>
-              <flexbox-item :span="2">
-                <div class="team-box">VS</div>
-                <div class="team-box time-text">{{ parseMinuteTime(v.game_time) }}</div>
-              </flexbox-item>
-              <flexbox-item :style="{ color: resultColor(v.game_result, false) }" :span="5">
-                <div class="team-box team-text">
-                  <span>{{ _.get(teams, v.away_team_id + '.name') }}</span>
-                  <span class="result-box">{{ '(客)' }}</span>
-                </div>
-                <div class="team-box en-text">{{ _.get(teams, v.away_team_id + '.en_name') }}</div>
-                <template v-if="v.game_result > 0">
-                  <div class="team-box score-text">
-                    <span class="score-box">{{ v.home_team_score }}</span>
-                    <span class="result-box">{{ `(${gameResult(v.game_result, false)})` }}</span>
+                  <div class="team-box en-text">{{ _.get(teams, v.home_team_id + '.en_name') }}</div>
+                  <template v-if="v.game_result > 0">
+                    <div class="team-box score-text">
+                      <span class="score-box">{{ v.home_team_score }}</span>
+                      <span class="result-box">{{ `(${gameResult(v.game_result, true)})` }}</span>
+                    </div>
+                  </template>
+                </flexbox-item>
+                <flexbox-item :span="2">
+                  <div class="team-box">VS</div>
+                  <div class="team-box time-text">{{ parseMinuteTime(v.game_time) }}</div>
+                </flexbox-item>
+                <flexbox-item :style="{ color: resultColor(v.game_result, false) }" :span="5">
+                  <div class="team-box team-text">
+                    <span>{{ _.get(teams, v.away_team_id + '.name') }}</span>
+                    <span class="result-box">{{ '(客)' }}</span>
                   </div>
-                </template>
-              </flexbox-item>
-            </flexbox>
-          </card>
+                  <div class="team-box en-text">{{ _.get(teams, v.away_team_id + '.en_name') }}</div>
+                  <template v-if="v.game_result > 0">
+                    <div class="team-box score-text">
+                      <span class="score-box">{{ v.away_team_score }}</span>
+                      <span class="result-box">{{ `(${gameResult(v.game_result, false)})` }}</span>
+                    </div>
+                  </template>
+                </flexbox-item>
+              </flexbox>
+            </card>
+          </div>
         </swipeout-item>
       </swipeout>
     </group>
+    <divider v-else>暂无数据</divider>
     <group>
       <x-button type="primary" @click.native="addSchedule">添加</x-button>
       <x-button type="primary" @click.native="generateSchedule">随机生成</x-button>
     </group>
+    <x-dialog v-model="showDialog" hide-on-blur>
+      <group>
+        <cell title="主队得分">
+          <x-number v-model="form.home_team_score" fillable :min="1" :max="1000"></x-number>
+        </cell>
+        <cell title="客队得分">
+          <x-number v-model="form.away_team_score" fillable :min="1" :max="1000"></x-number>
+        </cell>
+      </group>
+      <group>
+        <x-button type="primary" @click.native="saveScore">提交</x-button>
+      </group>
+    </x-dialog>
   </div>
 </template>
 
 <script>
-  import { Calendar, Card, Swipeout, SwipeoutButton, SwipeoutItem } from 'vux'
-  import { getTeams, getSchedules, generateSchedule, deleteSchedule } from '@api'
+  import { Calendar, Card, Swipeout, SwipeoutButton, SwipeoutItem, XDialog, XNumber } from 'vux'
+  import { getTeams, getSchedules, generateSchedule, updateSchedule, deleteSchedule } from '@api'
   import { parseDate, parseMinuteTime } from '@utils'
   export default {
     components: {
@@ -63,12 +79,22 @@
       Card,
       Swipeout,
       SwipeoutButton,
-      SwipeoutItem
+      SwipeoutItem,
+      XDialog,
+      XNumber
     },
     data() {
       return {
         date: '',
         schedules: [],
+        form: {
+          id: 0,
+          home_team_score: 0,
+          away_team_score: 0,
+          home_team_score_raw: 0,
+          away_team_score_raw: 0
+        },
+        showDialog: false,
         teams: {}
       }
     },
@@ -133,6 +159,27 @@
           this.getSchedules()
         })
       },
+      saveScore() {
+        if (this.form.home_team_score === this.form.home_team_score_raw && this.form.away_team_score === this.form.away_team_score_raw) {
+          this.showAlert('比分没有更新')
+          return
+        }
+        const data = this._.cloneDeep(this.form)
+        delete data.home_team_score_raw
+        delete data.away_team_score_raw
+        updateSchedule(data).then(msg => {
+          this.showToast(msg)
+          this.schedules.map(v => {
+            if (v.id === data.id) {
+              v.home_team_score = data.home_team_score
+              v.away_team_score = data.away_team_score
+              v.game_result = v.home_team_score > v.away_team_score ? 1 : (v.home_team_score < v.away_team_score ? 3 : 2)
+              return v
+            }
+          })
+          this.showDialog = false
+        })
+      },
       deleteSchedule(id) {
         deleteSchedule(id).then(msg => {
           this.showToast(msg)
@@ -143,6 +190,16 @@
       },
       addSchedule() {
         this.$router.push({ path: '/backend/game/add' })
+      },
+      editSchedule(row) {
+        this.form = {
+          id: row.id,
+          home_team_score: row.home_team_score,
+          away_team_score: row.away_team_score,
+          home_team_score_raw: row.home_team_score,
+          away_team_score_raw: row.away_team_score
+        }
+        this.showDialog = true
       }
     }
   }

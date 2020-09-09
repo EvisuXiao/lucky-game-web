@@ -1,7 +1,7 @@
 <template>
   <div>
     <group>
-      <cell title="每天中奖人数">
+      <cell title="每场中奖人数">
         <x-number v-model="settings.success_num" fillable :min="1" :max="1000"></x-number>
       </cell>
     </group>

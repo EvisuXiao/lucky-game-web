@@ -34,7 +34,8 @@
       tabs() {
         const frontend = [
           { title: '用户', link: '/frontend/user' },
-          { title: '赛程', link: '/frontend/game' }
+          { title: '竞猜', link: '/frontend/game' },
+          { title: '记录', link: '/frontend/record' }
         ]
         const backend = [
           { title: '赛程', link: '/backend/game' },
